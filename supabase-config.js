@@ -4,7 +4,7 @@
   Never put service_role keys or users' passwords in this file.
 */
 window.BIOTRACK_SUPABASE = {
-  url: "",
-  anonKey: "",
+  url: "https://zmdtmbseonrjgwchdpmj.supabase.co",
+  anonKey: "sb_publishable_McQVMvJ9WUAjwKf0oB0BSg_DIbE1_nN",
   bossEmail: "manojmedengg@gmail.com"
 };
