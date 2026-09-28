@@ -1,0 +1,529 @@
+/* =========================================================
+   BioTrack — Light & Dark theme (grayscale only)
+   Default on first load = DARK mode
+   Toggle by adding/removing .light-mode on <body>
+   ========================================================= */
+
+/* =========================================================
+   DARK MODE  (default — applied to body without .light-mode)
+   Dark background, white text
+   ========================================================= */
+
+   /* Pre-load dark background before JS runs */
+html.dark-preload,
+html.dark-preload body {
+  background: #121212;
+  color: #f5f5f5;
+}
+
+/* --- Base surfaces --- */
+body {
+  background: #121212;
+  color: #f5f5f5;
+}
+
+/* --- Topbar --- */
+.topbar {
+  background: #0a0a0a;
+  border-bottom: 1px solid #2e2e2e;
+  color: #ffffff;
+}
+.topbar small { color: #b0b0b0; }
+.brand { color: #ffffff; }
+.brand-mark {
+  background: #ffffff;
+  color: #0a0a0a;
+  border: 2px solid #ffffff;
+  box-shadow: none;
+}
+
+/* --- Main headings --- */
+.heading h1 {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  background: none;
+}
+.heading p,
+.footer-note {
+  color: #b8b8b8;
+}
+
+/* --- Cards, toolbar, table --- */
+.stat,
+.toolbar,
+.table-wrap {
+  background: #1c1c1c;
+  border-color: #333333;
+  color: #f0f0f0;
+  box-shadow: 0 8px 24px #00000055;
+}
+.stat b { color: #ffffff; }
+.stat span { color: #b0b0b0; }
+
+/* --- Inputs & selects --- */
+input,
+select {
+  background: #181818;
+  color: #f5f5f5;
+  border-color: #3a3a3a;
+}
+input::placeholder { color: #888888; }
+input:focus,
+select:focus {
+  outline: 2px solid #77777788;
+  outline-offset: 2px;
+}
+.search span { color: #a0a0a0; }
+
+/* --- Buttons --- */
+.plain {
+  background: #232323;
+  color: #f0f0f0;
+  border: 1px solid #444444;
+}
+.plain:hover { background: #2e2e2e; }
+
+.primary {
+  background: #f5f5f5;
+  color: #0a0a0a;
+  border: 1px solid #f5f5f5;
+}
+.primary:hover { background: #ffffff; }
+
+.danger {
+  background: #232323;
+  color: #e0e0e0;
+  border: 1px solid #555555;
+}
+.danger:hover { background: #2e2e2e; }
+
+/* --- Table --- */
+.table-wrap th {
+  background: #181818;
+  color: #c0c0c0;
+  border-color: #333333;
+}
+.table-wrap td {
+  color: #eeeeee;
+  border-color: #2a2a2a;
+}
+tbody tr:hover { background: #232323; }
+
+/* --- Tags & muted text --- */
+.tag {
+  background: #2a2a2a;
+  color: #e8e8e8;
+  border: 1px solid #444444;
+}
+.muted { color: #909090; }
+
+/* --- Dialogs --- */
+dialog,
+.workspace-dialog {
+  background: #1a1a1a;
+  color: #f0f0f0;
+  border: 1px solid #3a3a3a;
+  box-shadow: 0 25px 70px #000000cc;
+}
+dialog::backdrop { background: #000000bb; }
+
+.modal-head,
+.workspace-head {
+  background: #0f0f0f;
+  color: #ffffff;
+  border-bottom: 1px solid #2e2e2e;
+}
+.close { color: #ffffff; }
+
+/* --- History --- */
+.history-hero {
+  background: #1f1f1f;
+  color: #f0f0f0;
+}
+.history-hero h2 { color: #ffffff; }
+.history-meta { color: #c0c0c0; }
+.history-meta span { background: #2a2a2a; }
+.history-toolbar {
+  border-color: #333333;
+}
+.event-card {
+  background: #202020;
+  border-color: #383838;
+  color: #eeeeee;
+}
+.event-card b { color: #ffffff; }
+.event-card p { color: #c4c4c4; }
+.event-dot {
+  background: #e0e0e0;
+  box-shadow: 0 0 0 5px #ffffff22;
+}
+.event-dot:after { border-color: #333333; }
+.event-date { color: #a8a8a8; }
+.timeline-empty { color: #b0b0b0; }
+
+/* --- Panels / modules --- */
+.panel {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+  color: #f0f0f0;
+}
+.panel h3 { color: #ffffff; }
+.mini-stat {
+  background: #222222;
+}
+.mini-stat b { color: #ffffff; }
+.mini-stat span { color: #b0b0b0; }
+
+.module-card {
+  background: #1f1f1f;
+  border-color: #3a3a3a;
+  color: #f0f0f0;
+}
+.module-card b { color: #ffffff; }
+.module-card span { color: #b8b8b8; }
+
+.module-table th,
+.module-table td {
+  color: #eeeeee;
+  border-color: #333333;
+}
+.module-table th { color: #c0c0c0; }
+
+/* --- Activity / logs --- */
+.activity {
+  border-color: #333333;
+}
+.activity b { color: #ffffff; }
+.activity small { color: #b0b0b0; }
+.activity p { color: #c8c8c8; }
+
+.log-item {
+  background: #1f1f1f;
+  border-color: #333333;
+}
+.log-item:hover { background: #262626; }
+.log-item b { color: #ffffff; }
+.log-item span { color: #b0b0b0; }
+
+.comment {
+  background: #1f1f1f;
+  border-left-color: #aaaaaa;
+  color: #e0e0e0;
+}
+.comment small { color: #b0b0b0; }
+.comment-box {
+  background: #202020;
+  color: #e8e8e8;
+}
+
+/* --- Misc --- */
+.helper,
+.empty-module,
+.no-data,
+.note {
+  color: #a8a8a8;
+}
+.team-row {
+  border-color: #333333;
+  color: #eeeeee;
+}
+.notify-item {
+  border-color: #333333;
+  color: #eeeeee;
+}
+.notify-item b { color: #ffffff; }
+.alert-badge {
+  background: #f0f0f0;
+  color: #0a0a0a;
+}
+.alert-count {
+  background: #f0f0f0;
+  color: #0a0a0a;
+}
+
+/* --- Stock colors (grayscale) --- */
+.positive { color: #e8e8e8; }
+.negative { color: #a0a0a0; }
+.stock-positive { color: #f0f0f0; font-weight: 700; }
+.stock-low     { color: #c0c0c0; font-weight: 700; }
+.stock-out     { color: #909090; font-weight: 700; }
+
+/* --- Auth screen --- */
+.auth-screen { background: #121212; }
+.auth-card {
+  background: #1c1c1c;
+  border-color: #333333;
+  color: #f0f0f0;
+}
+.auth-card h1 { color: #ffffff; }
+.auth-card label { color: #d0d0d0; }
+.auth-symbol {
+  background: #ffffff;
+  color: #0a0a0a;
+}
+.eyebrow { color: #a0a0a0; }
+.auth-copy { color: #b8b8b8; }
+.auth-message { color: #b8b8b8; }
+.auth-small { color: #999999; }
+
+/* --- Fixed night toggle button --- */
+#nightToggle {
+  background: #232323;
+  color: #ffffff;
+  border: 1px solid #444444;
+}
+
+
+/* =========================================================
+   LIGHT MODE — applied when body has .light-mode
+   White background, black text
+   ========================================================= */
+
+body.light-mode {
+  background: #f5f5f5;
+  color: #111111;
+}
+
+/* --- Topbar --- */
+body.light-mode .topbar {
+  background: #ffffff;
+  border-bottom: 1px solid #d0d0d0;
+  color: #111111;
+}
+body.light-mode .topbar small { color: #666666; }
+body.light-mode .brand { color: #111111; }
+body.light-mode .brand-mark {
+  background: #111111;
+  color: #ffffff;
+  border: 2px solid #111111;
+}
+
+/* --- Headings --- */
+body.light-mode .heading h1 {
+  color: #111111;
+  -webkit-text-fill-color: #111111;
+  background: none;
+}
+body.light-mode .heading p,
+body.light-mode .footer-note {
+  color: #555555;
+}
+
+/* --- Cards, toolbar, table --- */
+body.light-mode .stat,
+body.light-mode .toolbar,
+body.light-mode .table-wrap {
+  background: #ffffff;
+  border-color: #d0d0d0;
+  color: #111111;
+  box-shadow: 0 8px 24px #0000000d;
+}
+body.light-mode .stat b { color: #111111; }
+body.light-mode .stat span { color: #555555; }
+
+/* --- Inputs & selects --- */
+body.light-mode input,
+body.light-mode select {
+  background: #ffffff;
+  color: #111111;
+  border-color: #c0c0c0;
+}
+body.light-mode input::placeholder { color: #888888; }
+body.light-mode input:focus,
+body.light-mode select:focus {
+  outline: 2px solid #33333355;
+  outline-offset: 2px;
+}
+body.light-mode .search span { color: #666666; }
+
+/* --- Buttons --- */
+body.light-mode .plain {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #c0c0c0;
+}
+body.light-mode .plain:hover { background: #f0f0f0; }
+
+body.light-mode .primary {
+  background: #111111;
+  color: #ffffff;
+  border: 1px solid #111111;
+}
+body.light-mode .primary:hover { background: #000000; }
+
+body.light-mode .danger {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid #999999;
+}
+body.light-mode .danger:hover { background: #f0f0f0; }
+
+/* --- Table --- */
+body.light-mode .table-wrap th {
+  background: #f5f5f5;
+  color: #444444;
+  border-color: #d0d0d0;
+}
+body.light-mode .table-wrap td {
+  color: #111111;
+  border-color: #e0e0e0;
+}
+body.light-mode tbody tr:hover { background: #f8f8f8; }
+
+/* --- Tags & muted --- */
+body.light-mode .tag {
+  background: #efefef;
+  color: #222222;
+  border: 1px solid #cccccc;
+}
+body.light-mode .muted { color: #777777; }
+
+/* --- Dialogs --- */
+body.light-mode dialog,
+body.light-mode .workspace-dialog {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #cccccc;
+  box-shadow: 0 25px 70px #00000022;
+}
+body.light-mode dialog::backdrop { background: #55555588; }
+
+body.light-mode .modal-head,
+body.light-mode .workspace-head {
+  background: #111111;
+  color: #ffffff;
+  border-bottom: 1px solid #111111;
+}
+body.light-mode .close { color: #ffffff; }
+
+/* --- History --- */
+body.light-mode .history-hero {
+  background: #f5f5f5;
+  color: #111111;
+}
+body.light-mode .history-hero h2 { color: #111111; }
+body.light-mode .history-meta { color: #555555; }
+body.light-mode .history-meta span { background: #eaeaea; }
+body.light-mode .history-toolbar { border-color: #d0d0d0; }
+body.light-mode .event-card {
+  background: #fafafa;
+  border-color: #d5d5d5;
+  color: #111111;
+}
+body.light-mode .event-card b { color: #111111; }
+body.light-mode .event-card p { color: #555555; }
+body.light-mode .event-dot {
+  background: #111111;
+  box-shadow: 0 0 0 5px #11111111;
+}
+body.light-mode .event-dot:after { border-color: #cccccc; }
+body.light-mode .event-date { color: #666666; }
+body.light-mode .timeline-empty { color: #777777; }
+
+/* --- Panels / modules --- */
+body.light-mode .panel {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  color: #111111;
+}
+body.light-mode .panel h3 { color: #111111; }
+body.light-mode .mini-stat { background: #f2f2f2; }
+body.light-mode .mini-stat b { color: #111111; }
+body.light-mode .mini-stat span { color: #555555; }
+
+body.light-mode .module-card {
+  background: #f7f7f7;
+  border-color: #d5d5d5;
+  color: #111111;
+}
+body.light-mode .module-card b { color: #111111; }
+body.light-mode .module-card span { color: #555555; }
+
+body.light-mode .module-table th,
+body.light-mode .module-table td {
+  color: #111111;
+  border-color: #d5d5d5;
+}
+body.light-mode .module-table th { color: #444444; }
+
+/* --- Activity / logs --- */
+body.light-mode .activity { border-color: #d5d5d5; }
+body.light-mode .activity b { color: #111111; }
+body.light-mode .activity small { color: #555555; }
+body.light-mode .activity p { color: #333333; }
+
+body.light-mode .log-item {
+  background: #f7f7f7;
+  border-color: #d5d5d5;
+}
+body.light-mode .log-item:hover { background: #efefef; }
+body.light-mode .log-item b { color: #111111; }
+body.light-mode .log-item span { color: #555555; }
+
+body.light-mode .comment {
+  background: #f2f2f2;
+  border-left-color: #333333;
+  color: #222222;
+}
+body.light-mode .comment small { color: #555555; }
+body.light-mode .comment-box {
+  background: #f2f2f2;
+  color: #222222;
+}
+
+/* --- Misc --- */
+body.light-mode .helper,
+body.light-mode .empty-module,
+body.light-mode .no-data,
+body.light-mode .note {
+  color: #666666;
+}
+body.light-mode .team-row {
+  border-color: #d5d5d5;
+  color: #111111;
+}
+body.light-mode .notify-item {
+  border-color: #d5d5d5;
+  color: #111111;
+}
+body.light-mode .notify-item b { color: #111111; }
+body.light-mode .alert-badge {
+  background: #111111;
+  color: #ffffff;
+}
+body.light-mode .alert-count {
+  background: #111111;
+  color: #ffffff;
+}
+
+/* --- Stock colors (grayscale, light) --- */
+body.light-mode .positive { color: #111111; }
+body.light-mode .negative { color: #666666; }
+body.light-mode .stock-positive { color: #111111; font-weight: 700; }
+body.light-mode .stock-low     { color: #444444; font-weight: 700; }
+body.light-mode .stock-out     { color: #777777; font-weight: 700; }
+
+/* --- Auth screen --- */
+body.light-mode .auth-screen { background: #f5f5f5; }
+body.light-mode .auth-card {
+  background: #ffffff;
+  border-color: #d0d0d0;
+  color: #111111;
+}
+body.light-mode .auth-card h1 { color: #111111; }
+body.light-mode .auth-card label { color: #333333; }
+body.light-mode .auth-symbol {
+  background: #111111;
+  color: #ffffff;
+}
+body.light-mode .eyebrow { color: #666666; }
+body.light-mode .auth-copy { color: #555555; }
+body.light-mode .auth-message { color: #555555; }
+body.light-mode .auth-small { color: #777777; }
+
+/* --- Fixed night toggle button --- */
+body.light-mode #nightToggle {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #999999;
+}
