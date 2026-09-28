@@ -59,3 +59,48 @@ main { max-width: 1440px; margin: auto; padding: 30px clamp(18px, 4vw, 54px) 52p
   .stat { flex: 1 }
   select { flex: 1; }
 }
+
+@media (max-width: 600px) {
+  .topbar {
+    flex-wrap: wrap; align-items: center;
+    padding: 12px 14px; gap: 10px;
+  }
+  .brand { flex: 1 1 100%; }
+  .nav-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .nav-actions button { min-height: 40px; }
+
+  main { padding: 22px 14px 36px; }
+  .heading { gap: 14px; margin: 0 0 17px; }
+  .heading p { font-size: 14px; line-height: 1.45; }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stat { min-width: 0; padding: 10px 8px; border-radius: 10px; }
+  .stat b { font-size: 19px; }
+  .stat span { font-size: 11px; line-height: 1.3; }
+
+  .toolbar { gap: 8px; padding: 12px; border-radius: 12px 12px 0 0; }
+  .toolbar .search { flex: 1 1 100%; min-width: 0; }
+  .toolbar > select,
+  .toolbar > button {
+    flex: 1 1 calc(50% - 4px); min-width: 0; width: auto;
+    min-height: 42px; padding: 9px 8px;
+    white-space: normal; line-height: 1.2;
+  }
+  .toolbar > #addBtn { flex-basis: 100%; }
+
+  .table-wrap {
+    overflow-x: auto; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0 0 12px 12px;
+  }
+  tbody tr:hover { transform: none; }
+  .footer-note { margin: 12px 2px; line-height: 1.5; }
+}
+
+@media (max-width: 380px) {
+  .nav-actions { justify-content: flex-start; }
+  .nav-actions button { padding: 8px; font-size: 11px; }
+  .stats { gap: 6px; }
+  .stat { padding: 9px 6px; }
+  .stat b { font-size: 17px; }
+  .toolbar { padding: 9px; gap: 7px; }
+}

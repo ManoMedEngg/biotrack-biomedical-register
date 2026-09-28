@@ -97,3 +97,26 @@ form { padding: 22px; }
   .module-toolbar { align-items: flex-start; flex-direction: column; }
   .event-form .form-grid { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 600px) {
+  dialog,
+  .history-dialog,
+  .workspace-dialog,
+  .wide-dialog {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    border-radius: 12px;
+  }
+  .modal-head, .workspace-head { gap: 10px; padding: 15px 16px; }
+  .modal-head h2, .workspace-head h2 { min-width: 0; font-size: 18px; line-height: 1.25; }
+  .modal-head .close { flex: 0 0 auto; }
+  form, .event-form { padding: 17px 16px; }
+  .workspace-body { max-height: calc(100dvh - 82px); padding: 16px; }
+  .workspace-grid { gap: 12px; padding: 12px; }
+  .panel { min-width: 0; padding: 12px; }
+  .modal-actions { flex-wrap: wrap; gap: 8px; }
+  .modal-actions button { flex: 1 1 110px; min-height: 42px; }
+  .module-toolbar { width: 100%; }
+  .data-list { max-height: 40vh; }
+}
