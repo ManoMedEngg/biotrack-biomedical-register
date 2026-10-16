@@ -22,34 +22,27 @@
     return isLight;
   }
 
-  // Set theme + update every toggle button label on the page.
+  // Set theme + update the appearance control label.
   function setMode(isLight) {
     document.body.classList.toggle('light-mode', isLight);
     localStorage.setItem('biotrack-mode', isLight ? 'light' : 'dark');
 
-    // Topbar toggle
     const modeBtn = q('#modeBtn');
-    if (modeBtn) modeBtn.textContent = isLight ? 'Dark mode' : 'Light mode';
-
-    // Floating toggle (auth screen)
-    const nightToggle = q('#nightToggle');
-    if (nightToggle) nightToggle.textContent = isLight ? 'Dark mode' : 'Light mode';
+    if (modeBtn) modeBtn.textContent = isLight ? 'Use dark mode' : 'Use light mode';
   }
 
   // First paint: apply dark (or previously saved light)
   setMode(applyStoredTheme());
 
-  // Topbar toggle button
+  // Settings appearance toggle
   const modeBtn = q('#modeBtn');
   if (modeBtn) {
     modeBtn.onclick = () => setMode(!document.body.classList.contains('light-mode'));
   }
 
-  // Floating toggle on auth screen
-  const nightToggle = q('#nightToggle');
-  if (nightToggle) {
-    nightToggle.onclick = () => setMode(!document.body.classList.contains('light-mode'));
-  }
+  const settingsDialog = q('#settingsDialog');
+  q('#settingsBtn').onclick = () => settingsDialog.showModal();
+  q('#settingsClose').onclick = () => settingsDialog.close();
 
   /* =========================================================
      2) SUPABASE AUTHENTICATION
@@ -216,6 +209,7 @@
 
   createAccountBtn.onclick = () => {
     if (!window.BioTrackAuth.canManage()) return;
+    settingsDialog.close();
     accountForm.reset();
     accountMessage.textContent = '';
     accountDialog.showModal();
@@ -251,6 +245,7 @@
     createAccountBtn.hidden = true;
     q('#signOutBtn').hidden = true;
     q('#sessionStatus').textContent = 'Signed out';
+    settingsDialog.close();
   };
 
   if (!configured()) {

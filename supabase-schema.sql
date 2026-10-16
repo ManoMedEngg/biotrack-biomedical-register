@@ -65,6 +65,8 @@ create table if not exists public.stock_movements (
   quantity numeric(12,2) not null check (quantity > 0),
   direction text not null check (direction in ('Received','Issued')),
   vendor text,
+  contact_person text,
+  contact_number text,
   department text,
   movement_date date not null,
   person text,
@@ -105,6 +107,8 @@ create table if not exists public.comments (
 alter table public.equipment add column if not exists client_id text;
 alter table public.equipment_history add column if not exists client_id text;
 alter table public.stock_movements add column if not exists client_id text;
+alter table public.stock_movements add column if not exists contact_person text;
+alter table public.stock_movements add column if not exists contact_number text;
 alter table public.daily_logs add column if not exists client_id text;
 alter table public.comments add column if not exists client_id text;
 update public.equipment set client_id = 'legacy-' || id::text where client_id is null;

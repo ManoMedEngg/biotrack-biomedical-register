@@ -74,12 +74,6 @@
 
   <!-- ============ DECORATIVE ============ -->
   <div class="rainbow-rail" aria-hidden="true"></div>
-  <div class="theme-dots" title="Change colour theme">
-    <button data-theme="ocean" aria-label="Ocean theme"></button>
-    <button data-theme="violet" aria-label="Violet theme"></button>
-    <button data-theme="sunset" aria-label="Sunset theme"></button>
-  </div>
-
   <!-- ============ TOPBAR ============ -->
   <header class="topbar">
     <div class="brand">
@@ -88,13 +82,9 @@
     </div>
     <div class="nav-actions">
       <small id="sessionStatus">Offline workspace</small>
-      <button class="plain" id="createAccountBtn" type="button" hidden>Create account</button>
-      <button class="plain" id="signOutBtn" type="button" hidden>Sign out</button>
       <button class="plain desktop-nav" id="stockBtn">Stock maintenance</button>
       <button class="plain desktop-nav" id="logBtn">Daily logbook</button>
-      <button class="plain alert-btn" id="alertsBtn" aria-label="Notifications">
-        ◉ <span class="alert-count" id="alertCount" hidden>0</span>
-      </button>
+      <button class="plain" id="settingsBtn" type="button" aria-label="Settings" title="Settings">⚙ Settings</button>
     </div>
   </header>
 
@@ -120,7 +110,6 @@
       <select id="department"><option value="">All departments</option></select>
       <button class="plain" id="stockBtnMain">Stock maintenance</button>
       <button class="plain" id="logbookBtn">Daily logbook</button>
-      <button class="plain" id="teamBtn">Team &amp; alerts</button>
       <button class="plain" id="excelBtn">Download Excel</button>
       <button class="plain" id="wordBtn">Download Word</button>
       <button class="primary" id="addBtn" data-write>+ Add equipment</button>
@@ -130,8 +119,12 @@
       <table>
         <thead>
           <tr>
-            <th>S.No</th><th>Department</th><th>Equipment name</th><th>Make</th>
-            <th>Model</th><th>Serial number</th><th>Asset code</th><th>Actions</th>
+            <th>S.No</th>
+            <th><button class="sort-button" type="button" data-equipment-sort="department">Department</button></th>
+            <th><button class="sort-button" type="button" data-equipment-sort="name">Equipment name</button></th>
+            <th><button class="sort-button" type="button" data-equipment-sort="make">Make</button></th>
+            <th><button class="sort-button" type="button" data-equipment-sort="model">Model</button></th>
+            <th>Serial number</th><th>Asset code</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -207,12 +200,15 @@
   </dialog>
 
   <!-- Stock maintenance dialog -->
-  <dialog id="stockDialog" class="workspace-dialog">
+  <dialog id="stockDialog" class="workspace-dialog stock-dialog">
     <div class="modal-head"><h2>Stock maintenance</h2><button class="close" type="button" id="stockClose">×</button></div>
-    <div class="workspace-grid">
+    <div class="stock-workspace">
       <section class="panel">
-        <div class="history-toolbar">
+        <div class="stock-toolbar">
           <h3>Material balance</h3>
+          <label class="stock-search">Search stock
+            <input id="stockSearch" type="search" placeholder="Search product, vendor, contact or department" autocomplete="off">
+          </label>
           <button class="primary" id="addStockBtn" data-write>+ Record stock movement</button>
         </div>
         <div class="stock-summary">
@@ -220,13 +216,42 @@
           <div class="mini-stat"><b id="stockReceived">0</b><span>Units received</span></div>
           <div class="mini-stat"><b id="stockIssued">0</b><span>Units issued</span></div>
         </div>
-        <div class="data-list" id="stockList"></div>
+        <div class="stock-table-wrap">
+          <table class="module-table stock-table">
+            <thead><tr>
+              <th><button class="sort-button" type="button" data-balance-sort="product">Product</button></th>
+              <th><button class="sort-button" type="button" data-balance-sort="vendor">Vendor</button></th>
+              <th><button class="sort-button" type="button" data-balance-sort="contactPerson">Contact person</button></th>
+              <th><button class="sort-button" type="button" data-balance-sort="contactNumber">Contact number</button></th>
+              <th><button class="sort-button" type="button" data-balance-sort="received">Received</button></th>
+              <th><button class="sort-button" type="button" data-balance-sort="issued">Issued</button></th>
+              <th><button class="sort-button" type="button" data-balance-sort="balance">On hand</button></th>
+            </tr></thead>
+            <tbody id="stockList"></tbody>
+          </table>
+          <p class="empty-module" id="stockEmpty" hidden>No stock items match this search.</p>
+        </div>
       </section>
-      <aside class="panel">
+      <section class="panel">
         <h3>Stock activity</h3>
-        <p class="note" style="margin:0 0 12px">Received and issued records are based on the Material Details workbook.</p>
-        <div class="data-list" id="stockMoves"></div>
-      </aside>
+        <div class="stock-table-wrap">
+          <table class="module-table stock-table">
+            <thead><tr>
+              <th><button class="sort-button" type="button" data-movement-sort="date">Date</button></th>
+              <th><button class="sort-button" type="button" data-movement-sort="direction">Movement</button></th>
+              <th><button class="sort-button" type="button" data-movement-sort="product">Product</button></th>
+              <th><button class="sort-button" type="button" data-movement-sort="party">Vendor / department</button></th>
+              <th><button class="sort-button" type="button" data-movement-sort="contactPerson">Contact person</button></th>
+              <th><button class="sort-button" type="button" data-movement-sort="contactNumber">Contact number</button></th>
+              <th><button class="sort-button" type="button" data-movement-sort="quantity">Quantity</button></th>
+              <th><button class="sort-button" type="button" data-movement-sort="note">Notes</button></th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="stockMoves"></tbody>
+          </table>
+          <p class="empty-module" id="stockMovesEmpty" hidden>No stock movements match this search.</p>
+        </div>
+      </section>
     </div>
   </dialog>
 
@@ -240,6 +265,8 @@
         <label class="wide">Product <input name="product" required placeholder="Material / product name"></label>
         <label>Quantity <input name="quantity" type="number" min="0.01" step="0.01" required></label>
         <label id="partyLabel">Vendor / department <input name="party" placeholder="Vendor or receiving department"></label>
+        <label>Contact person <input name="contactPerson" placeholder="Supplier contact person"></label>
+        <label>Contact number <input name="contactNumber" type="tel" placeholder="Supplier phone number"></label>
         <label class="wide">Handled by / note <input name="note" placeholder="Received by, issued to, or notes"></label>
       </div>
       <div class="modal-actions">
@@ -301,14 +328,29 @@
     </div>
   </dialog>
 
-  <!-- Alerts -->
-  <dialog id="alertsDialog">
-    <div class="modal-head"><h2>Notifications</h2><button class="close" type="button" id="alertsClose">×</button></div>
-    <div id="alertsList" class="data-list" style="padding:8px 20px 20px;min-width:360px"></div>
+  <!-- Settings -->
+  <dialog id="settingsDialog" class="workspace-dialog settings-dialog">
+    <div class="modal-head"><h2>Settings</h2><button class="close" type="button" id="settingsClose">×</button></div>
+    <div class="settings-content">
+      <section class="settings-section">
+        <h3>Account</h3>
+        <div class="settings-actions">
+          <button class="plain" id="createAccountBtn" type="button" hidden>Create account</button>
+          <button class="plain" id="signOutBtn" type="button" hidden>Sign out</button>
+        </div>
+      </section>
+      <section class="settings-section">
+        <h3>Appearance</h3>
+        <button class="plain" id="modeBtn" type="button">Light mode</button>
+        <p class="helper">Choose a colour theme</p>
+        <div class="theme-dots" title="Change colour theme">
+          <button data-theme="ocean" aria-label="Ocean theme"></button>
+          <button data-theme="violet" aria-label="Violet theme"></button>
+          <button data-theme="sunset" aria-label="Sunset theme"></button>
+        </div>
+      </section>
+    </div>
   </dialog>
-
-  <!-- Fixed night toggle -->
-  <button id="nightToggle" type="button">Night mode</button>
 
   <!-- ============ SCRIPTS ============ -->
   <script src="supabase-config.js"></script>

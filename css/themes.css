@@ -266,14 +266,6 @@ dialog::backdrop { background: #000000bb; }
 .auth-message { color: #b8b8b8; }
 .auth-small { color: #999999; }
 
-/* --- Fixed night toggle button --- */
-#nightToggle {
-  background: #232323;
-  color: #ffffff;
-  border: 1px solid #444444;
-}
-
-
 /* =========================================================
    LIGHT MODE — applied when body has .light-mode
    White background, black text
@@ -521,9 +513,13 @@ body.light-mode .auth-copy { color: #555555; }
 body.light-mode .auth-message { color: #555555; }
 body.light-mode .auth-small { color: #777777; }
 
-/* --- Fixed night toggle button --- */
-body.light-mode #nightToggle {
-  background: #ffffff;
-  color: #111111;
-  border: 1px solid #999999;
+body[data-theme="ocean"] { --theme-accent: #218d9b; }
+body[data-theme="violet"] { --theme-accent: #7654a8; }
+body[data-theme="sunset"] { --theme-accent: #d56b45; }
+body[data-theme] .brand-mark,
+body[data-theme] .tag { border-color: var(--theme-accent); }
+body[data-theme] .stock-table th { color: #555555; }
+body[data-theme] .theme-dots button[aria-pressed="true"] {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
 }

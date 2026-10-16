@@ -10,17 +10,44 @@
   const canManage = () => window.BioTrackAuth?.canManage() === true;
   const esc = s => String(s || '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const stockKey = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const stockRecordKey = x => [
+    x.direction, stockKey(x.product), Number(x.quantity) || 0, stockKey(x.party), x.date || ''
+  ].join('|');
+
+  function addSheetStock(records) {
+    const ids = new Set(records.map(x => x.id));
+    const existingRecords = new Set(records.filter(x => !String(x.id).startsWith('sheet-stock-')).map(stockRecordKey));
+    const result = records.slice();
+    data.buildSheetStock().forEach(item => {
+      if (ids.has(item.id) || existingRecords.has(stockRecordKey(item))) return;
+      result.push(item);
+      ids.add(item.id);
+    });
+    return result;
+  }
 
   /* ---------- State ---------- */
   let equipment = JSON.parse(localStorage.getItem('biotrack-equipment') || 'null') || data.initial;
   let history = JSON.parse(localStorage.getItem('biotrack-history') || 'null') || data.buildHistory(equipment);
-  let stock = JSON.parse(localStorage.getItem('biotrack-stock') || 'null') || data.buildStock();
+  const storedStock = JSON.parse(localStorage.getItem('biotrack-stock') || 'null');
+  const stockSheetImported = localStorage.getItem('biotrack-stock-sheet-import-v1') === 'true';
+  let stock = stockSheetImported
+    ? (storedStock || data.buildStock())
+    : addSheetStock(storedStock || data.buildStock());
+  if (!storedStock || stock.length !== storedStock.length) {
+    localStorage.setItem('biotrack-stock', JSON.stringify(stock));
+  }
+  localStorage.setItem('biotrack-stock-sheet-import-v1', 'true');
   let logs = JSON.parse(localStorage.getItem('biotrack-logs') || 'null') || [];
   let team = JSON.parse(localStorage.getItem('biotrack-team') || 'null') || [];
   let notifications = JSON.parse(localStorage.getItem('biotrack-alerts') || 'null') || [];
 
   let editingId = null, editingEventId = null, selectedId = null;
   let editingStockId = null, editingLogId = null, selectedLogId = null;
+  let equipmentSort = '', equipmentDirection = 1;
+  let balanceSort = 'product', balanceDirection = 1;
+  let movementSort = 'date', movementDirection = -1;
 
   function save() {
     localStorage.setItem('biotrack-equipment', JSON.stringify(equipment));
@@ -51,11 +78,22 @@
 
   function render() {
     fillDepartments();
-    const data2 = visible();
+    const data2 = visible().slice();
+    if (equipmentSort) {
+      data2.sort((a, b) => equipmentDirection * String(a[equipmentSort] || '').localeCompare(
+        String(b[equipmentSort] || ''), undefined, { numeric: true, sensitivity: 'base' }
+      ));
+    }
     $('#totalCount').textContent = equipment.length;
     $('#deptCount').textContent = new Set(equipment.map(x => x.department).filter(Boolean)).size;
     $('#historyCount').textContent = history.length;
     $('#empty').hidden = !!data2.length;
+    document.querySelectorAll('[data-equipment-sort]').forEach(button => {
+      const active = button.dataset.equipmentSort === equipmentSort;
+      button.dataset.label ||= button.textContent.trim();
+      button.textContent = `${button.dataset.label}${active ? (equipmentDirection === 1 ? ' ↑' : ' ↓') : ''}`;
+      button.closest('th').setAttribute('aria-sort', active ? (equipmentDirection === 1 ? 'ascending' : 'descending') : 'none');
+    });
     $('#rows').innerHTML = data2.map((x, i) => `
       <tr onclick="openHistory('${x.id}')">
         <td>${i + 1}</td>
@@ -159,6 +197,16 @@
   $('#addHistoryBtn').onclick = () => openEvent();
   $('#search').oninput = render;
   $('#department').onchange = render;
+  document.querySelectorAll('[data-equipment-sort]').forEach(button => {
+    button.onclick = () => {
+      if (equipmentSort === button.dataset.equipmentSort) equipmentDirection *= -1;
+      else {
+        equipmentSort = button.dataset.equipmentSort;
+        equipmentDirection = 1;
+      }
+      render();
+    };
+  });
 
   $('#equipmentForm').onsubmit = e => {
     e.preventDefault();
@@ -224,44 +272,99 @@
   }
 
   /* ---------- Stock ---------- */
-  const stockKey = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
   function stockBalances() {
     const map = new Map();
     stock.forEach(x => {
       const key = stockKey(x.product);
-      const item = map.get(key) || { product: x.product, received: 0, issued: 0 };
+      const item = map.get(key) || {
+        product: x.product, received: 0, issued: 0, unknownReceived: 0, vendors: new Set(),
+        contactPeople: new Set(), contactNumbers: new Set()
+      };
       item[x.direction] += Number(x.quantity) || 0;
+      if (x.direction === 'received' && !(Number(x.quantity) > 0)) item.unknownReceived += 1;
+      if (x.direction === 'received' && x.party) item.vendors.add(x.party);
+      if (x.contactPerson) item.contactPeople.add(x.contactPerson);
+      if (x.contactNumber) item.contactNumbers.add(x.contactNumber);
       map.set(key, item);
     });
     return [...map.values()]
-      .map(x => ({ ...x, balance: x.received - x.issued }))
-      .sort((a, b) => a.product.localeCompare(b.product));
+      .map(x => ({
+        ...x,
+        vendor: [...x.vendors].join(', '),
+        contactPerson: [...x.contactPeople].join(', '),
+        contactNumber: [...x.contactNumbers].join(', '),
+        balance: x.received - x.issued
+      }));
+  }
+
+  function stockMatches(x, query) {
+    return !query || [
+      x.product, x.party, x.vendor, x.contactPerson, x.contactNumber, x.note
+    ].some(value => String(value || '').toLowerCase().includes(query));
+  }
+
+  function sortStockRows(rows, field, direction) {
+    return rows.slice().sort((a, b) => {
+      const first = a[field], second = b[field];
+      if (first === '' || first == null) return second === '' || second == null ? 0 : 1;
+      if (second === '' || second == null) return -1;
+      if (typeof first === 'number' && typeof second === 'number') return direction * (first - second);
+      return direction * String(first).localeCompare(String(second), undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }
+
+  function updateSortButtons(selector, sortField, direction) {
+    document.querySelectorAll(selector).forEach(button => {
+      button.dataset.label ||= button.textContent.trim();
+      const active = button.dataset.balanceSort === sortField ||
+        button.dataset.movementSort === sortField;
+      button.textContent = `${button.dataset.label}${active ? (direction === 1 ? ' ↑' : ' ↓') : ''}`;
+      button.closest('th').setAttribute('aria-sort', active ? (direction === 1 ? 'ascending' : 'descending') : 'none');
+    });
   }
 
   function renderStock() {
     const balances = stockBalances();
+    const query = $('#stockSearch').value.trim().toLowerCase();
     const rec = stock.filter(x => x.direction === 'received').reduce((a, x) => a + (+x.quantity || 0), 0);
     const issued = stock.filter(x => x.direction === 'issued').reduce((a, x) => a + (+x.quantity || 0), 0);
     $('#stockItems').textContent = balances.length;
     $('#stockReceived').textContent = rec;
     $('#stockIssued').textContent = issued;
-    $('#stockList').innerHTML = balances.length
-      ? balances.map(x => `
-          <div class="data-row">
-            <div><b>${esc(x.product)}</b><br><small>Received ${x.received} · Issued ${x.issued}</small></div>
-            <b class="${x.balance < 0 ? 'negative' : 'positive'}">${x.balance}</b>
-            <small>${x.balance < 0 ? 'Review' : 'On hand'}</small>
-            <span></span>
-          </div>`).join('')
-      : '<p class="no-data">No stock records.</p>';
-    $('#stockMoves').innerHTML = stock.slice().sort((a, b) => b.date.localeCompare(a.date)).map(x => `
-      <div class="data-row">
-        <div><b>${esc(x.product)}</b><br><small>${prettyDate(x.date)} · ${esc(x.party || '—')}</small></div>
-        <b class="${x.direction === 'received' ? 'positive' : 'negative'}">${x.direction === 'received' ? '+' : '−'}${x.quantity}</b>
-          <button class="plain" data-write onclick="editStock('${x.id}')">Edit</button>
-          <button class="danger" data-write onclick="deleteStock('${x.id}')">×</button>
-      </div>`).join('');
+    const balanceRows = sortStockRows(
+      balances.filter(x => stockMatches(x, query)), balanceSort, balanceDirection
+    );
+    $('#stockList').innerHTML = balanceRows.map(x => `
+      <tr>
+        <td><strong>${esc(x.product)}</strong></td>
+        <td>${esc(x.vendor) || '<span class="muted">—</span>'}</td>
+        <td>${esc(x.contactPerson) || '<span class="muted">—</span>'}</td>
+        <td>${esc(x.contactNumber) || '<span class="muted">—</span>'}</td>
+        <td>${x.unknownReceived ? (x.received ? `${x.received} + ?` : 'Unknown') : x.received}</td>
+        <td>${x.issued}</td>
+        <td><strong class="${x.unknownReceived ? 'muted' : x.balance < 0 ? 'negative' : 'positive'}">${x.unknownReceived ? 'Unknown' : x.balance}</strong></td>
+      </tr>`).join('');
+    $('#stockEmpty').hidden = !!balanceRows.length;
+
+    const movementRows = sortStockRows(stock.filter(x => stockMatches(x, query)), movementSort, movementDirection);
+    $('#stockMoves').innerHTML = movementRows.map(x => `
+      <tr>
+        <td>${prettyDate(x.date)}</td>
+        <td>${esc(x.direction)}</td>
+        <td><strong>${esc(x.product)}</strong></td>
+        <td>${esc(x.party) || '<span class="muted">—</span>'}</td>
+        <td>${esc(x.contactPerson) || '<span class="muted">—</span>'}</td>
+        <td>${esc(x.contactNumber) || '<span class="muted">—</span>'}</td>
+        <td>${Number(x.quantity) ? esc(x.quantity) : '<span class="muted">Not recorded</span>'}</td>
+        <td>${esc(x.note) || '<span class="muted">—</span>'}</td>
+        <td class="row-actions" data-write>
+          <button class="plain" onclick="editStock('${x.id}')">Edit</button>
+          <button class="danger" onclick="deleteStock('${x.id}')">Delete</button>
+        </td>
+      </tr>`).join('');
+    $('#stockMovesEmpty').hidden = !!movementRows.length;
+    updateSortButtons('[data-balance-sort]', balanceSort, balanceDirection);
+    updateSortButtons('[data-movement-sort]', movementSort, movementDirection);
   }
 
   function openStockEditor(item) {
@@ -348,19 +451,6 @@
 
   window.openLog = id => { selectedLogId = id; renderLogDetail(); $('#logDetail').showModal(); };
 
-  /* ---------- Alerts ---------- */
-  function renderAlerts() {
-    const unread = notifications.filter(x => !x.read);
-    $('#alertCount').hidden = !unread.length;
-    $('#alertCount').textContent = unread.length;
-    $('#alertsList').innerHTML = notifications.length
-      ? notifications.slice().reverse().map(x => `
-          <div class="notify-item">
-            <b>${esc(x.title)}</b><span>${esc(x.text)}</span><br><small>${prettyDate(x.date)}</small>
-          </div>`).join('')
-      : '<p class="no-data">You have no new notifications.</p>';
-  }
-
   /* ---------- Wire up workspace UI ---------- */
   // Stock (topbar + toolbar both point to the same action)
   const openStock = () => { renderStock(); $('#stockDialog').showModal(); };
@@ -369,6 +459,27 @@
   $('#stockClose').onclick = () => $('#stockDialog').close();
   $('#addStockBtn').onclick = () => openStockEditor();
   $('#stockEditClose').onclick = $('#stockCancel').onclick = () => $('#stockEditor').close();
+  $('#stockSearch').oninput = renderStock;
+  document.querySelectorAll('[data-balance-sort]').forEach(button => {
+    button.onclick = () => {
+      if (balanceSort === button.dataset.balanceSort) balanceDirection *= -1;
+      else {
+        balanceSort = button.dataset.balanceSort;
+        balanceDirection = 1;
+      }
+      renderStock();
+    };
+  });
+  document.querySelectorAll('[data-movement-sort]').forEach(button => {
+    button.onclick = () => {
+      if (movementSort === button.dataset.movementSort) movementDirection *= -1;
+      else {
+        movementSort = button.dataset.movementSort;
+        movementDirection = 1;
+      }
+      renderStock();
+    };
+  });
 
   $('#stockForm').onsubmit = e => {
     e.preventDefault();
@@ -419,18 +530,8 @@
       date: new Date().toISOString().slice(0, 10),
       read: false
     });
-    save(); e.target.reset(); renderLogDetail(); renderLogs(); renderAlerts();
+    save(); e.target.reset(); renderLogDetail(); renderLogs();
   };
-
-  // Alerts
-  $('#alertsBtn').onclick = () => {
-    if (canManage()) {
-      notifications.forEach(x => x.read = true);
-      save(); renderAlerts();
-    }
-    $('#alertsDialog').showModal();
-  };
-  $('#alertsClose').onclick = () => $('#alertsDialog').close();
 
   // Exports
   $('#excelBtn').onclick = exportExcel;
@@ -438,24 +539,35 @@
   $('#downloadHistoryBtn').onclick = downloadDeviceReport;
 
   // Theme dots
-  document.querySelectorAll('[data-theme]').forEach(b => b.onclick = () => {
-    document.body.dataset.theme = b.dataset.theme;
-    localStorage.setItem('biotrack-theme', b.dataset.theme);
+  const setColorTheme = theme => {
+    document.body.dataset.theme = theme;
+    localStorage.setItem('biotrack-theme', theme);
+    document.querySelectorAll('[data-theme]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.theme === theme));
+    });
+  };
+  document.querySelectorAll('[data-theme]').forEach(button => {
+    button.onclick = () => setColorTheme(button.dataset.theme);
   });
-  document.body.dataset.theme = localStorage.getItem('biotrack-theme') || 'ocean';
+  setColorTheme(localStorage.getItem('biotrack-theme') || 'ocean');
 
   // Initial render
   render();
-  renderAlerts();
   window.BioTrackApp = {
     refreshFromCloud() {
       equipment = JSON.parse(localStorage.getItem('biotrack-equipment') || '[]');
       history = JSON.parse(localStorage.getItem('biotrack-history') || '[]');
-      stock = JSON.parse(localStorage.getItem('biotrack-stock') || '[]');
+      const cloudStock = JSON.parse(localStorage.getItem('biotrack-stock') || '[]');
+      const combined = new Map(cloudStock.map(x => [x.id, x]));
+      stock.forEach(x => combined.set(x.id, { ...x, ...(combined.get(x.id) || {}) }));
+      stock = [...combined.values()];
+      const combinedStock = JSON.stringify(stock);
+      if (combinedStock !== JSON.stringify(cloudStock)) {
+        localStorage.setItem('biotrack-stock', combinedStock);
+        window.dispatchEvent(new Event('biotrack-local-change'));
+      }
       logs = JSON.parse(localStorage.getItem('biotrack-logs') || '[]');
-      notifications = JSON.parse(localStorage.getItem('biotrack-alerts') || '[]');
       render();
-      renderAlerts();
     }
   };
 })();
